@@ -1,0 +1,23 @@
+# AI Git Commit & PR Generator Configuration
+
+# AI Model settings
+model: gpt-4o-mini
+temperature: 0.2
+max_tokens: 1000
+provider: openai # openai, gemini, or mock
+
+# Safe Mode & Sensitive Data Sanitization
+safe_mode: true
+max_diff_files: 10
+max_diff_lines: 200
+
+# Output Conventions
+language: ko # ko or en
+convention: conventional_commits
+commit_max_title_len: 72
+pr_max_title_len: 80
+
+# Custom instructions to append to AI prompts
+custom_instructions: |
+  - 커밋 메시지는 간결하고 핵심적인 변화 위주로 요약할 것
+  - 불필요한 장황한 서술은 지양할 것

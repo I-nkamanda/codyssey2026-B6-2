@@ -1,0 +1,4 @@
+# No mandatory dependencies required for standard Python 3.10+
+# Optional packages for extended YAML parsing or testing:
+pyyaml>=6.0
+pytest>=7.0.0

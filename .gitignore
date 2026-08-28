@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# IDE & Editor files
+.vscode/
+*.swp
+*.swo
+
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
