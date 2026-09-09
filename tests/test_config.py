@@ -24,7 +24,7 @@ max_tokens: 1500
 safe_mode: false
 language: en
 convention: angular
-""")
+""") #모델, 설정 온도, 최대 토큰, 안전모드, 언어, 커밋 컨벤션 등 설정
             temp_path = f.name
 
         try:

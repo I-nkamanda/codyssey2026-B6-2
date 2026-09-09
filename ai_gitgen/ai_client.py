@@ -8,71 +8,71 @@ import urllib.error
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 
-
-class AIClientError(Exception):
+#발생할 수 있는 오류 상황들을 미리 이름 붙여서 예외 클래스들로 정의해 둔다. 
+class AIClientError(Exception): #우선 클라이언트에서 일어날 수 있을 에러/예외 케이스들의 공통 부모 클래스 선언.
     """Base exception for AI Client errors."""
     pass
 
 
-class MissingApiKeyError(AIClientError):
+class MissingApiKeyError(AIClientError): #AIClientError 상속: API 키가 없을 때 
     """Raised when API Key is not configured."""
     pass
 
 
-class AuthenticationError(AIClientError):
+class AuthenticationError(AIClientError): #AIClientError 상속: API 키가 인증하고 실패했을 때
     """Raised when API Key is invalid or expired."""
     pass
 
 
-class RateLimitError(AIClientError):
+class RateLimitError(AIClientError): #AIClientError 상속: rate limit / quota를 초과했을 떄
     """Raised when API rate limit or quota is exceeded."""
     pass
 
 
-@dataclass
-class AIResponse:
-    content: str
-    model: str
-    tokens_used: Optional[int] = None
-    call_count: int = 1
+@dataclass # @dataclass 데코레이터를 앞에 붙이면, AIResponse 클래스 정의 시에 def __init__(인자):, self.content = 머시기, self.model = 저시기 하고 직접 써야 하는 코드들을 자동 생성해 준다. (__repr__, __eq__ 등등도 자동 생성을 해줌)
+class AIResponse: #AIResponse라는 클래스를 정의한다.
+    content: str #내용의 형태는 string이다
+    model: str #모델명도 string으로 저장한다.
+    tokens_used: Optional[int] = None #사용된 토큰은 int 이거나 None고, 기본값은 None이다
+    call_count: int = 1 #call count(API 호출 쵯수) 형태는 int고, 기본값는 1회다
 
 
 class AIClient:
-    def __init__(
+    def __init__( #클래스 인스턴스 생성 시에 갖는 기본값. = 이하는 기본값이다.
         self,
-        api_key: Optional[str] = None,
+        api_key: Optional[str] = None, 
         model: str = "gpt-4o-mini",
         temperature: float = 0.2,
         max_tokens: int = 1000,
         provider: str = "openai",
         api_base_url: Optional[str] = None,
-        mock_mode: bool = False
+        mock_mode: bool = False #기본적으로 mock mode(모의 시험 모드)는 off
     ):
         self.api_key = api_key or os.getenv("AI_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.provider = provider.lower()
-        self.api_base_url = api_base_url
-        self.mock_mode = mock_mode or (self.api_key in ("mock", "test", "dummy"))
-        self.call_count = 0
+        self.provider = provider.lower() #소문자로 변환해서 저장
+        self.api_base_url = api_base_url #API 기본 url
+        self.mock_mode = mock_mode or (self.api_key in ("mock", "test", "dummy")) #모의 모드는 인스턴스 생성 시 기본 설정이 true거나 혹은 api_key에 "mock", "test", "dummy" 같은 문자 열이 들어있는 경우에 true로 된다는 뜻
+        self.call_count = 0 #API 호출 카운트는 0에서 시작한다
 
     def generate(self, prompt: str, task_type: str = "commit") -> AIResponse:
         """Generates AI completion for the given prompt."""
-        self.call_count += 1
+        self.call_count += 1 #호출 횟수를 1번 늘린다. 앞에 있는 경우는 성공하든 실패하든 호출이 일어났기 때문이다.
 
-        if self.mock_mode:
-            return self._generate_mock(prompt, task_type)
+        if self.mock_mode: #모의 시험 모드가 켜져 있으면
+            return self._generate_mock(prompt, task_type) #아랫쪽에 있는 모의 시험 모드 메소드를 실행해서 반환한다
 
-        if not self.api_key:
-            raise MissingApiKeyError(
+        if not self.api_key: #API키가 설정되지 않은 경우에는
+            raise MissingApiKeyError( #위에 선언해놓은 API 키 에러를 raise.
                 "AI_API_KEY 환경변수가 설정되지 않았습니다.\n# 예) export AI_API_KEY=\"YOUR_KEY\""
             )
 
-        if self.provider == "gemini" or (self.api_key.startswith("AIza") and not self.api_base_url):
-            return self._call_gemini_api(prompt)
-        else:
-            return self._call_openai_api(prompt)
+        if self.provider == "gemini" or (self.api_key.startswith("AIza") and not self.api_base_url): #AI 서비스 제공자가 'gemini'든가 api_key가 'AIza'로 시작할 경우에는
+            return self._call_gemini_api(prompt) #_call_gemini_api 메소드로 프롬프트를 실어보낸다
+        else: #아니라면
+            return self._call_openai_api(prompt) #openai api를 call하는 메소드로 프롬프트를 실어보낸다.
 
     def _call_openai_api(self, prompt: str) -> AIResponse:
         base_url = (self.api_base_url or "https://api.openai.com/v1").rstrip("/")
